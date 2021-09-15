@@ -11,19 +11,14 @@ namespace Tests
         {
             //Arrange
             LoginManager loginManager = new();
-            loginManager.RegisterNewUser("user","pass");
+
 
             //Act
-
+            loginManager.RegisterNewUser("user", "pass");
 
             //Assert
 
 
-        }
-        [Fact]
-        public void UsernameAndPasswordRegistrationTest()
-        {
-            LoginManager loginManager = new LoginManager();
         }
     }
 }
