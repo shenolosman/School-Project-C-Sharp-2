@@ -53,5 +53,17 @@ namespace Core
                 return false;
             }
         }
+
+        public bool ValidUsername()
+        {
+
+            return false;
+        }
+
+        public bool ValidPassword()
+        {
+
+            return false;
+        }
     }
 }
