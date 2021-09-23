@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Http.Headers;
 
 namespace Core
 {
@@ -28,6 +29,11 @@ namespace Core
     {
         public string _username;
         public string _password;
+        public DateTime _dateForInactive;
+        public LoginManager()
+        {
+            _dateForInactive = DateTime.Today;
+        }
 
         public void RegisterUser(string username, string password)
         {
@@ -67,15 +73,26 @@ namespace Core
 
         public bool ValidPassword(string password)
         {
-            char[] notAllowed = "^åäÅÄÖ¨ö'.,½€£${[]}\"~".ToCharArray();
-            char[] allowed = "!”#¤%&/()=?-_*’".ToCharArray();
-            if (password.IndexOfAny(allowed) == -1 || !password.Any(char.IsNumber) || !password.Any(char.IsUpper) || password.IndexOfAny(notAllowed) != -1)
+            var passwordChars = password.ToCharArray();
+            const string letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNPQRSTUVWYZ";
+            const string numbers = "1234567890";
+            const string specialChars = "!”#¤%&/()=?-_*’";
+            if (!string.IsNullOrEmpty(password))
             {
-                return false;
-            }
-            else if (password.Length is <= 16 and >= 8)
-            {
-                return true;
+                foreach (var x in passwordChars)
+                {
+                    if (
+                        !(password.Length >= 8 && password.Length < 17)
+                        ||
+                        !(numbers.Contains(x) ||
+                          letters.Contains(x) ||
+                          specialChars.Contains(x)
+                          )
+                        )
+                    {
+                        return false;
+                    }
+                }
             }
             return true;
         }
