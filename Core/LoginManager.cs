@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Core
 {
@@ -56,18 +57,27 @@ namespace Core
 
         public bool ValidUsername(string username)
         {
-            char[] validCharsForUsername = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPTSTUVWYZ1234567890-_".ToCharArray();
-            if (validCharsForUsername==username.ToCharArray())
+            char[] notAllowed = "^åä¨ö'.,½€£${[]}\"~!”#¤%&/()=?*".ToCharArray();
+            if (username.IndexOfAny(notAllowed) == -1 && (username.Length <= 16 && username.Length > 3))
             {
                 return true;
             }
             return false;
         }
 
-        public bool ValidPassword()
+        public bool ValidPassword(string password)
         {
-
-            return false;
+            char[] notAllowed = "^åäÅÄÖ¨ö'.,½€£${[]}\"~".ToCharArray();
+            char[] allowed = "!”#¤%&/()=?-_*’".ToCharArray();
+            if (password.IndexOfAny(allowed) == -1 || !password.Any(char.IsNumber) || !password.Any(char.IsUpper) || password.IndexOfAny(notAllowed) != -1)
+            {
+                return false;
+            }
+            else if (password.Length is <= 16 and >= 8)
+            {
+                return true;
+            }
+            return true;
         }
     }
 }

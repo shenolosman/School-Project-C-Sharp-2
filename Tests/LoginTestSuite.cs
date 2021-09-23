@@ -52,9 +52,20 @@ namespace Tests
         [Fact]
         private void Test_ValidUsernameAllowedChar()
         {
-            _loginManager.RegisterUser("user", "pass");
             Assert.True(_loginManager.ValidUsername("user"));
+            Assert.False(_loginManager.ValidUsername("usär"));
+            Assert.False(_loginManager.ValidUsername("u"));
+            Assert.False(_loginManager.ValidUsername("12345678901234567"));
+            Assert.True(_loginManager.ValidUsername("123456789_-7"));
         }
-
+        [Fact]
+        private void Test_ValidPasswordAllowedChar()
+        {
+            Assert.True(_loginManager.ValidPassword("user123!"));
+            Assert.False(_loginManager.ValidPassword("uasdsär2"));
+            Assert.False(_loginManager.ValidPassword("u"));
+            Assert.False(_loginManager.ValidPassword("12345678901234567"));
+            Assert.True(_loginManager.ValidPassword("123456789_-7"));
+        }
     }
 }
