@@ -6,31 +6,34 @@ namespace Tests
 {
     public class LoginTestSuite
     {
-        [Fact]
-        private void TestRegisterUser()
+        private LoginManager _loginManager;
+        public LoginTestSuite()
         {
-            //Arrange
-            LoginManager loginManager = new();
-
-
-            //Act
-            loginManager.RegisterNewUser("user", "pass");
-
-            //Assert
-            Assert.True(loginManager.CheckSameUsers("user","pass"));
-
+            _loginManager = new LoginManager();
+        }
+        [Fact]
+        private void Test_RegisterUser()
+        {
+            _loginManager.RegisterUser("user", "pass");
+            Assert.Equal("user", _loginManager._username);
+            Assert.Equal("pass", _loginManager._password);
+        
+        }
+        [Fact]
+        private void Test_UserLogin()
+        {
+            _loginManager.LoginUser("user", "pass");
+            Assert.True(_loginManager.LoginUser("user", "pass"));
         }
 
         [Fact]
-        private void TestCantRegisterSameUserTwice()
+        private void Test_CantRegisterSameUserTwice()
         {
-            LoginManager loginManager = new();
+            _loginManager.LoginUser("user", "pwd");
+            _loginManager.LoginUser("user", "pwd_diff");
 
-            loginManager.RegisterNewUser("user","pwd");
-            loginManager.RegisterNewUser("user","pwd_diff");
-
-           Assert.True(loginManager.CheckSameUsers("user", "pwd"));
-           Assert.False(loginManager.CheckSameUsers("user", "pwd_diff"));
+            Assert.True(_loginManager.CheckSameUsers("user", "pwd"));
+            Assert.False(_loginManager.CheckSameUsers("user", "pwd_diff"));
         }
     }
 }
