@@ -1,5 +1,6 @@
 using Core;
 using System;
+using System.IO;
 using Xunit;
 
 namespace Tests
@@ -67,7 +68,24 @@ namespace Tests
             Assert.False(_loginManager.ValidPassword("PÅSSWÅRD-3"));
             Assert.False(_loginManager.ValidPassword("nuh"));
             Assert.False(_loginManager.ValidPassword("12345678901234567"));
+        }
 
+        [Fact]
+        private void Test_SaveInFile()
+        {
+            var path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var adress = Path.Combine(path, "Downloads", "test.txt");
+
+            _loginManager.SaveUsernamePasswordInFile("user","pass");
+
+            Assert.True(File.Exists(adress));
+
+            string control;
+            using (var sr=new StreamReader(adress))
+            {
+                control = sr.ReadLine();
+            }
+            Assert.Equal("Username: user,Password: pass", control);
         }
     }
 }
