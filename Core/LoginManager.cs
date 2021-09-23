@@ -106,5 +106,10 @@ namespace Core
             using var sw = new StreamWriter(adress);
             sw.WriteLine("Username: {0},Password: {1}", username, password);
         }
+
+        public string ReadFromFile(string user)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -87,5 +87,13 @@ namespace Tests
             }
             Assert.Equal("Username: user,Password: pass", control);
         }
+
+        [Fact]
+        public void SavedPasswordFromFile()
+        {
+            _loginManager.SaveUsernamePasswordInFile("user","pass");
+            string usernameFromFile = _loginManager.ReadFromFile("user");
+            Assert.Equal("pass",usernameFromFile);
+        }
     }
 }
