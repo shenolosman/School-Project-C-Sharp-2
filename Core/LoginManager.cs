@@ -54,9 +54,13 @@ namespace Core
             }
         }
 
-        public bool ValidUsername()
+        public bool ValidUsername(string username)
         {
-
+            char[] validCharsForUsername = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPTSTUVWYZ1234567890-_".ToCharArray();
+            if (validCharsForUsername==username.ToCharArray())
+            {
+                return true;
+            }
             return false;
         }
 

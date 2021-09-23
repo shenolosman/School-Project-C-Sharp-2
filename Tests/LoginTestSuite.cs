@@ -49,5 +49,12 @@ namespace Tests
             Assert.False(_loginManager.LoginUser("user123", "pass"));
         }
 
+        [Fact]
+        private void Test_ValidUsernameAllowedChar()
+        {
+            _loginManager.RegisterUser("user", "pass");
+            Assert.True(_loginManager.ValidUsername("user"));
+        }
+
     }
 }
