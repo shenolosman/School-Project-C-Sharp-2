@@ -98,18 +98,26 @@ namespace Core
             return true;
         }
 
+        static string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string adress = Path.Combine(path, "Downloads", "test.txt");
 
         public void SaveUsernamePasswordInFile(string username, string password)
         {
-            var path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            var adress = Path.Combine(path, "Downloads", "test.txt");
-            using var sw = new StreamWriter(adress);
-            sw.WriteLine("Username: {0},Password: {1}", username, password);
+            using (var sw = new StreamWriter(adress))
+            {
+                sw.WriteLine("Username: {0},Password: {1}", username, password);
+            }
         }
 
         public string ReadFromFile(string user)
         {
-            throw new NotImplementedException();
+            string text;
+            using (var sr=new StreamReader(adress))
+            {
+                text = sr.ReadLine();
+            }
+            text = text.Substring(text.LastIndexOf(":") + 2);
+            return text;
         }
     }
 }

@@ -91,9 +91,11 @@ namespace Tests
         [Fact]
         public void SavedPasswordFromFile()
         {
-            _loginManager.SaveUsernamePasswordInFile("user","pass");
+            _loginManager.SaveUsernamePasswordInFile("user", "pass");
             string usernameFromFile = _loginManager.ReadFromFile("user");
-            Assert.Equal("pass",usernameFromFile);
+            string expected = "pass";
+            Assert.Equal(expected, usernameFromFile);
+            
         }
     }
 }
