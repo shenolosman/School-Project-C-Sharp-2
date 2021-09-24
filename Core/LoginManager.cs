@@ -1,77 +1,57 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
 
 namespace Core
 {
-    /*
-
-+ 1. Kunna registrera ny användare & lösenord +
-
-+ 2. Kunna logga in med användare & lösenord +
-
-+ 3. Inte kunna registrera samma användare två gånger om +
-
-+ 4. Bara kunna registrera användarnamn med engelska bokstäver (a-z, A-Z) siffor (0-9) och specialtecken (-_) som är max 16 karaktärer långa+
-
-+ 5. Bara kunna registrera lösenord med bokstäver (a-z, A-Z) siffor (0-9) och specialtecken (!”#¤%&/()=?-_*’) som är max 16 karaktärer långa +
-
-+ 6. Bara kunna registrera lösenord med minst längd 8 och minst en siffra och ett specialtecken
-
-+ 7. Spara ner användare & lösenord (t.ex. till en .txt fil) vid registrering
-
-+ 8. Kolla nersparade användares lösenord vid inloggning
-
-9. Inaktivera användarens lösenord efter ett år. Tips: spara ner datumen tillsammans med lösenorden för att inte ”glömma bort”
-
-    */
     public class LoginManager
     {
-        public string _username;
-        public string _password;
-        public DateTime _dateForInactive;
-        public LoginManager()
+        public List<User> usersList = new();
+        static readonly string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        readonly string adress = Path.Combine(path, "Downloads", "test.txt");
+        public bool RegisterUser(string username, string password)
         {
-            _dateForInactive = DateTime.Today;
-        }
-
-        public void RegisterUser(string username, string password)
-        {
-            if (_username != username)
+           var  userName = username.ToLower();
+            if (!CheckSameUsers(userName) && ValidUsername(userName) && ValidPassword(password))
             {
-                _username = username;
-                _password = password;
-            }
-        }
-        public bool LoginUser(string username, string password)
-        {
-            bool success = username == _username && password == _password;
-            return success;
-        }
-
-        public bool CheckSameUsers(string username, string password)
-        {
-            if (_username == username && _password == password)
-            {
+                User user = new User(userName, password);
+                usersList.Add(user);
                 return true;
             }
-            else
-            {
-                return false;
-            }
+            return false;
         }
-
+        public bool Login(string username, string password)
+        {
+            var userName = username.ToLower();
+            foreach (var user in usersList)
+            {
+                if (user._username.ToLower().Equals(userName) && user._password.Equals(password))
+                    return true;
+            }
+            return false;
+        }
+        public bool CheckSameUsers(string username)
+        {
+            var userName = username.ToLower();
+            foreach (var user in usersList)
+            {
+                if (user._username.ToLower().Equals(userName))
+                    return true;
+            }
+            return false;
+        }
         public bool ValidUsername(string username)
         {
+            var userName = username.ToLower();
             char[] notAllowed = "^åä¨ö'.,½€£${[]}\"~!”#¤%&/()=?*".ToCharArray();
-            if (username.IndexOfAny(notAllowed) == -1 && (username.Length <= 16 && username.Length > 3))
+            if (userName.IndexOfAny(notAllowed) == -1 && userName.Length is <= 16 and > 3)
             {
                 return true;
             }
             return false;
         }
-
         public bool ValidPassword(string password)
         {
             var passwordChars = password.ToCharArray();
@@ -97,27 +77,17 @@ namespace Core
             }
             return true;
         }
-
-        static string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        string adress = Path.Combine(path, "Downloads", "test.txt");
-
         public void SaveUsernamePasswordInFile(string username, string password)
         {
-            using (var sw = new StreamWriter(adress))
-            {
-                sw.WriteLine("Username: {0},Password: {1}", username, password);
-            }
+            using var sw = new StreamWriter(adress);
+            sw.WriteLine("Username: {0},Password: {1}", username, password);
         }
-
         public string ReadFromFile(string user)
         {
             string text;
-            using (var sr=new StreamReader(adress))
-            {
-                text = sr.ReadLine();
-            }
-            text = text.Substring(text.LastIndexOf(":") + 2);
-            return text;
+            using var sr = new StreamReader(adress);
+            text = sr.ReadLine();
+            return text.Substring(text.LastIndexOf(":") + 2);
         }
     }
 }

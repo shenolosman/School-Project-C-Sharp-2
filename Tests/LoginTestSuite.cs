@@ -8,6 +8,8 @@ namespace Tests
     public class LoginTestSuite
     {
         private LoginManager _loginManager;
+        static string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        string adress = Path.Combine(path, "Downloads", "test.txt");
         public LoginTestSuite()
         {
             _loginManager = new LoginManager();
@@ -15,41 +17,39 @@ namespace Tests
         [Fact]
         private void Test_RegisterUser()
         {
-            _loginManager.RegisterUser("user", "pass");
-            Assert.Equal("user", _loginManager._username);
-            Assert.Equal("pass", _loginManager._password);
-
+            Assert.True(_loginManager.RegisterUser("user", "pass123!"));
+            Assert.False(_loginManager.RegisterUser("User", "pass123!"));
+            Assert.False(_loginManager.RegisterUser("user", "pass123!"));
+            Assert.False(_loginManager.RegisterUser("user", "pass"));
+            Assert.False(_loginManager.RegisterUser("usär", "pass123!"));
         }
         [Fact]
         private void Test_UserLogin()
         {
-            _loginManager.LoginUser("user", "pass");
-            Assert.True(_loginManager.LoginUser("user", "pass"));
+           _loginManager.RegisterUser("user", "pass123!");
+            Assert.True(_loginManager.Login("user", "pass123!"));
+            _loginManager.RegisterUser("user", "pass");
+            Assert.False(_loginManager.Login("user", "pass"));
         }
-
         [Fact]
         private void Test_CantRegisterSameUserTwice()
         {
+            Assert.False(_loginManager.CheckSameUsers("user"));
             _loginManager.RegisterUser("user", "pass");
-            _loginManager.RegisterUser("user", "pass2");
-
-            Assert.True(_loginManager.CheckSameUsers("user", "pass"));
-            Assert.False(_loginManager.CheckSameUsers("user", "pass2"));
+            Assert.False(_loginManager.CheckSameUsers("user"));
         }
-
         [Fact]
         private void Test_LoginFalseUsername()
         {
             _loginManager.RegisterUser("user", "pass");
-            Assert.False(_loginManager.LoginUser("user", "pass123"));
+            Assert.False(_loginManager.Login("user", "pass123"));
         }
         [Fact]
         private void Test_LoginFalsePassword()
         {
             _loginManager.RegisterUser("user", "pass");
-            Assert.False(_loginManager.LoginUser("user123", "pass"));
+            Assert.False(_loginManager.Login("user123", "pass"));
         }
-
         [Fact]
         private void Test_ValidUsernameAllowedChar()
         {
@@ -58,7 +58,6 @@ namespace Tests
             Assert.False(_loginManager.ValidUsername("usär"));
             Assert.False(_loginManager.ValidUsername("u"));
             Assert.False(_loginManager.ValidUsername("12345678901234567"));
-        
         }
         [Fact]
         private void Test_ValidPasswordAllowedChar()
@@ -69,33 +68,25 @@ namespace Tests
             Assert.False(_loginManager.ValidPassword("nuh"));
             Assert.False(_loginManager.ValidPassword("12345678901234567"));
         }
-
         [Fact]
         private void Test_SaveInFile()
         {
-            var path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            var adress = Path.Combine(path, "Downloads", "test.txt");
-
-            _loginManager.SaveUsernamePasswordInFile("user","pass");
-
+            _loginManager.SaveUsernamePasswordInFile("user","pass123!");
             Assert.True(File.Exists(adress));
-
             string control;
             using (var sr=new StreamReader(adress))
             {
                 control = sr.ReadLine();
             }
-            Assert.Equal("Username: user,Password: pass", control);
+            Assert.Equal("Username: user,Password: pass123!", control);
         }
-
         [Fact]
         public void SavedPasswordFromFile()
         {
-            _loginManager.SaveUsernamePasswordInFile("user", "pass");
-            string usernameFromFile = _loginManager.ReadFromFile("user");
-            string expected = "pass";
+            _loginManager.SaveUsernamePasswordInFile("user", "pass123!");
+            var usernameFromFile = _loginManager.ReadFromFile("user");
+            var expected = "pass123!";
             Assert.Equal(expected, usernameFromFile);
-            
         }
     }
 }
