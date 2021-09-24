@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.Http.Headers;
 
 namespace Core
 {
@@ -11,13 +9,12 @@ namespace Core
         public List<User> usersList = new();
         static readonly string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         readonly string adress = Path.Combine(path, "Downloads", "test.txt");
-        public bool RegisterUser(string username, string password)
+        public bool RegisterUser(string username, string password,DateTime tid)
         {
            var  userName = username.ToLower();
             if (!CheckSameUsers(userName) && ValidUsername(userName) && ValidPassword(password))
             {
-                User user = new User(userName, password);
-                usersList.Add(user);
+                usersList.Add(new User(userName, password,nowTime:DateTime.Today));
                 return true;
             }
             return false;
@@ -84,10 +81,14 @@ namespace Core
         }
         public string ReadFromFile(string user)
         {
-            string text;
             using var sr = new StreamReader(adress);
-            text = sr.ReadLine();
+            var text = sr.ReadLine();
             return text.Substring(text.LastIndexOf(":") + 2);
+        }
+        public bool IsActive(string username,string pass,DateTime date)
+        { LoginManager _loginManager = new LoginManager();
+            _loginManager.usersList.Add(new User(username, pass, date));
+            return false;
         }
     }
 }

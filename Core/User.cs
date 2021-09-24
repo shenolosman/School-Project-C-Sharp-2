@@ -11,13 +11,11 @@ namespace Core
         public string _username;
         public string _password;
         public DateTime _registeredDate;
-        public bool _isActive;
-        public User(string name,string pass)
+        public User(string name,string pass,DateTime nowTime)
         {
             _username = name;
             _password = pass;
-            _registeredDate = DateTime.Today;
-            _isActive = true;
+            _registeredDate =nowTime;
         }
     }
 }
