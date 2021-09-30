@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net.Sockets;
+using System.Text;
 
 namespace Core
 {
+
     public class LoginManager
     {
         public List<User> usersList = new();
         static readonly string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         readonly string adress = Path.Combine(path, "Downloads", "test.txt");
-        public bool RegisterUser(string username, string password,DateTime tid)
+        public bool RegisterUser(string username, string password, DateTime tid)
         {
-           var  userName = username.ToLower();
+            var userName = username.ToLower();
             if (!CheckSameUsers(userName) && ValidUsername(userName) && ValidPassword(password))
             {
-                usersList.Add(new User(userName, password,nowTime:DateTime.Today));
+                usersList.Add(new User(userName, password, tid));
                 return true;
             }
             return false;
@@ -24,7 +28,7 @@ namespace Core
             var userName = username.ToLower();
             foreach (var user in usersList)
             {
-                if (user._username.ToLower().Equals(userName) && user._password.Equals(password))
+                if (user._username.ToLower().Equals(userName) && user._password.Equals(password) && PassCheck(username))
                     return true;
             }
             return false;
@@ -65,8 +69,8 @@ namespace Core
                         !(numbers.Contains(x) ||
                           letters.Contains(x) ||
                           specialChars.Contains(x)
-                          )
-                        )
+                            )
+                    )
                     {
                         return false;
                     }
@@ -74,21 +78,48 @@ namespace Core
             }
             return true;
         }
-        public void SaveUsernamePasswordInFile(string username, string password)
+        public bool PassCheck(string username)
         {
-            using var sw = new StreamWriter(adress);
-            sw.WriteLine("Username: {0},Password: {1}", username, password);
-        }
-        public string ReadFromFile(string user)
-        {
-            using var sr = new StreamReader(adress);
-            var text = sr.ReadLine();
-            return text.Substring(text.LastIndexOf(":") + 2);
-        }
-        public bool IsActive(string username,string pass,DateTime date)
-        { LoginManager _loginManager = new LoginManager();
-            _loginManager.usersList.Add(new User(username, pass, date));
+            foreach (var user in usersList)
+            {
+                if (user._username == username)
+                {
+                    if (user._registeredDate > DateTime.Now.AddDays(-365))
+                    {
+                        return true;
+                    }
+                }
+            }
             return false;
+        }
+        public void SaveFile()
+        {
+            using FileStream ladda = new FileStream(adress, FileMode.Append, FileAccess.Write);
+            var sw = new StreamWriter(ladda);
+            foreach (var user in usersList)
+            {
+                sw.WriteLine($"{user._username},{user._password},{user._registeredDate}");
+            }
+            sw.Dispose();
+        }
+        public List<User> ReadFile()
+        {
+            if (File.Exists(adress))
+            {
+                using (StreamReader
+                    reader = new StreamReader(adress, Encoding.Default,
+                        false))
+                {
+                    string line = "";
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        var split = line.Split(',');
+                        usersList.Add(new User(split[0], split[1], DateTime.Parse(split[2])));
+                    }
+                }
+            }
+            return usersList;
         }
     }
 }
+

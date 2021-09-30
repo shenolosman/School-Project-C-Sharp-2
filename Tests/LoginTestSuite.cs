@@ -7,7 +7,7 @@ namespace Tests
 {
     public class LoginTestSuite
     {
-        private LoginManager _loginManager;
+        private readonly LoginManager _loginManager;
         static string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         string adress = Path.Combine(path, "Downloads", "test.txt");
         private DateTime tid = DateTime.Today;
@@ -72,35 +72,39 @@ namespace Tests
         [Fact]
         private void Test_SaveInFile()
         {
-            _loginManager.SaveUsernamePasswordInFile("user", "pass123!");
+            _loginManager.RegisterUser("user", "pass123!", tid);
+
+            _loginManager.RegisterUser("user2", "passqwe123!", tid);
+            _loginManager.RegisterUser("usERWer", "pass12asd3!", tid);
+            _loginManager.RegisterUser("u12ser", "pass112323!", tid);
+            _loginManager.SaveFile();
             Assert.True(File.Exists(adress));
             string control;
             using (var sr = new StreamReader(adress))
             {
                 control = sr.ReadLine();
             }
-            Assert.Equal("Username: user,Password: pass123!", control);
+            Assert.Equal("user,pass123!,2021-09-29 00:00:00", control);
         }
-
-        [Fact]
-        public void Test_SavedPasswordFromFile()
-        {
-            _loginManager.SaveUsernamePasswordInFile("user", "pass123!");
-            var usernameFromFile = _loginManager.ReadFromFile("user");
-            var expected = "pass123!";
-            Assert.Equal(expected, usernameFromFile);
-            _loginManager.SaveUsernamePasswordInFile("user", "pÅss123!");
-            usernameFromFile = _loginManager.ReadFromFile("user");
-            Assert.NotEqual(expected, usernameFromFile);
-        }
-
         [Fact]
         void Test_InactiveDateForPassword()
         {
             DateTime fakeTime = DateTime.Today - TimeSpan.FromDays(365 * 1);
             Assert.NotEqual(fakeTime, DateTime.Now);
-         
-            Assert.False(_loginManager.IsActive("user","pass123!",fakeTime));
+
+            _loginManager.RegisterUser("user", "password1!", tid);
+            _loginManager.RegisterUser("user", "password12!", fakeTime);
+            _loginManager.SaveFile();
+
+            Assert.True(_loginManager.Login("user", "password1!"));
+            Assert.False(_loginManager.Login("user", "password12!"));
+        }
+        [Fact]
+        void ReadFile()
+        {
+            var userlist = _loginManager.ReadFile();
+            var user = userlist.Find(x => x._username == "user2");
+            Assert.Equal("user2", user._username);
         }
     }
 }
