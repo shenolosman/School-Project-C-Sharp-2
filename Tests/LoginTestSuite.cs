@@ -7,104 +7,105 @@ namespace Tests
 {
     public class LoginTestSuite
     {
-        private readonly LoginManager _loginManager;
-        static string path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-        string adress = Path.Combine(path, "Downloads", "test.txt");
-        private DateTime tid = DateTime.Today;
+        private LoginManager _loginManager;
+        private string _address;
+        private MockTime _mockTime;
+
         public LoginTestSuite()
         {
-            _loginManager = new LoginManager();
+            _mockTime = new MockTime();
+            _loginManager = new LoginManager(_mockTime);
+            var path = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            _address = Path.Combine(path, "Downloads", "test.txt");
         }
         [Fact]
-        private void Test_RegisterUser()
+        private void Test_RegisterUser() //1
         {
-            Assert.True(_loginManager.RegisterUser("user", "pass123!", tid));
-            Assert.False(_loginManager.RegisterUser("User", "pass123!", tid));
-            Assert.False(_loginManager.RegisterUser("user", "pass123!", tid));
-            Assert.False(_loginManager.RegisterUser("user", "pass", tid));
-            Assert.False(_loginManager.RegisterUser("usär", "pass123!", tid));
+            var pass = _loginManager.RegisterUser("user", "pass123_!", _mockTime);
+            var fail = _loginManager.RegisterUser("usär", "pas€£${[]}s123!", _mockTime);
+            Assert.True(pass);
+            Assert.False(fail);
         }
         [Fact]
-        private void Test_UserLogin()
+        private void Test_UserLgin() //2
         {
-            _loginManager.RegisterUser("user", "pass123!", tid);
-            Assert.True(_loginManager.Login("user", "pass123!"));
-            _loginManager.RegisterUser("user", "pass", tid);
-            Assert.False(_loginManager.Login("user", "pass"));
+            var fail = _loginManager.Login("user", "pass123_!", _mockTime);
+            _loginManager.RegisterUser("user", "pass123_!", _mockTime);
+            var pass = _loginManager.Login("user", "pass123_!", _mockTime);
+            Assert.False(fail);
+            Assert.True(pass);
         }
         [Fact]
-        private void Test_CantRegisterSameUserTwice()
+        private void Test_CantRegisterSameUserTwice() //3
         {
-            Assert.False(_loginManager.CheckSameUsers("user"));
-            _loginManager.RegisterUser("user", "pass", tid);
-            Assert.False(_loginManager.CheckSameUsers("user"));
+            var pass = _loginManager.RegisterUser("user", "pass123!", _mockTime);
+            var fail = _loginManager.RegisterUser("user", "pass23!", _mockTime);
+            Assert.True(pass);
+            Assert.False(fail);
         }
         [Fact]
-        private void Test_LoginFalseUsername()
+        private void Test_ValidUsernameAllowedChar()//4
         {
-            _loginManager.RegisterUser("user", "pass", tid);
-            Assert.False(_loginManager.Login("user", "pass123"));
+            var tillåtnabokstaver = _loginManager.RegisterUser("user", "passw0rd_!", _mockTime);
+            var tillåtnabokstaver_annanvariant = _loginManager.RegisterUser("123456789_-7", "passw0rd_!", _mockTime);
+            var otillåtnabokstaver = _loginManager.RegisterUser("UsärMädSvänkaÄ", "passw0rd_!", _mockTime);
+            var långtext = _loginManager.RegisterUser("u", "passw0rd_!", _mockTime);
+            Assert.True(tillåtnabokstaver);
+            Assert.True(tillåtnabokstaver_annanvariant);
+            Assert.False(otillåtnabokstaver);
+            Assert.False(långtext);
         }
         [Fact]
-        private void Test_LoginFalsePassword()
+        private void Test_ValidPasswordAllowedChar() //5 && 6
         {
-            _loginManager.RegisterUser("user", "pass", tid);
-            Assert.False(_loginManager.Login("user123", "pass"));
+            var tillåtnabokstaver = _loginManager.RegisterUser("user", "passw0rd_!", _mockTime); 
+            var alltvariant = _loginManager.RegisterUser("user1", "Lsenrd12¤%&_!", _mockTime);
+            var otillåtnabokstaver = _loginManager.RegisterUser("user2", "12345678a${[]", _mockTime);
+            var merän16 = _loginManager.RegisterUser("user3", "påssw0rd_{[12!påssw0rd_{[12!", _mockTime);
+            var mindreän8 = _loginManager.RegisterUser("user4", "123456", _mockTime);
+            var barasiffror = _loginManager.RegisterUser("user5", "1234567890", _mockTime);
+            var barabokstaver = _loginManager.RegisterUser("user6", "abcdeABCDE", _mockTime);
+            var barasrpecialtecken = _loginManager.RegisterUser("user7", "!”#¤%&/()=?-_*", _mockTime);
+            Assert.True(tillåtnabokstaver); 
+            Assert.True(alltvariant);
+            Assert.False(otillåtnabokstaver);
+            Assert.False(merän16);
+            Assert.False(mindreän8);
+            Assert.False(barasiffror);
+            Assert.False(barabokstaver);
+            Assert.False(barasrpecialtecken);
         }
         [Fact]
-        private void Test_ValidUsernameAllowedChar()
+        private void Test_SaveInFile() //7
         {
-            Assert.True(_loginManager.ValidUsername("user"));
-            Assert.True(_loginManager.ValidUsername("123456789_-7"));
-            Assert.False(_loginManager.ValidUsername("usär"));
-            Assert.False(_loginManager.ValidUsername("u"));
-            Assert.False(_loginManager.ValidUsername("12345678901234567"));
-        }
-        [Fact]
-        private void Test_ValidPasswordAllowedChar()
-        {
-            Assert.True(_loginManager.ValidPassword("123456789_-7"));
-            Assert.True(_loginManager.ValidPassword("pass123!"));
-            Assert.False(_loginManager.ValidPassword("PÅSSWÅRD-3"));
-            Assert.False(_loginManager.ValidPassword("nuh"));
-            Assert.False(_loginManager.ValidPassword("12345678901234567"));
-        }
-        [Fact]
-        private void Test_SaveInFile()
-        {
-            _loginManager.RegisterUser("user", "pass123!", tid);
-
-            _loginManager.RegisterUser("user2", "passqwe123!", tid);
-            _loginManager.RegisterUser("usERWer", "pass12asd3!", tid);
-            _loginManager.RegisterUser("u12ser", "pass112323!", tid);
+            _loginManager.RegisterUser("user", "pass123!", _mockTime);
             _loginManager.SaveFile();
-            Assert.True(File.Exists(adress));
-            string control;
-            using (var sr = new StreamReader(adress))
-            {
-                control = sr.ReadLine();
-            }
-            Assert.Equal("user,pass123!,2021-09-29 00:00:00", control);
+            Assert.True(File.Exists(_address));
+            _loginManager.ReadFile();
+            Assert.True(_loginManager.Login("user", "pass123!", _mockTime));
         }
         [Fact]
-        void Test_InactiveDateForPassword()
+        void ReadFile() //8
         {
-            DateTime fakeTime = DateTime.Today - TimeSpan.FromDays(365 * 1);
-            Assert.NotEqual(fakeTime, DateTime.Now);
-
-            _loginManager.RegisterUser("user", "password1!", tid);
-            _loginManager.RegisterUser("user", "password12!", fakeTime);
+            _loginManager.RegisterUser("user", "password1!", _mockTime);
+            var login = _loginManager.Login("user", "password1!", _mockTime);
+            Assert.True(login);
             _loginManager.SaveFile();
-
-            Assert.True(_loginManager.Login("user", "password1!"));
-            Assert.False(_loginManager.Login("user", "password12!"));
+            LoginManager lg = new LoginManager(new MockTime());
+            lg.ReadFile();
+            Assert.True(File.Exists(_address));
+            login = _loginManager.Login("user", "password1!", _mockTime);
+            Assert.True(login);
         }
         [Fact]
-        void ReadFile()
+        void Test_InactiveDateForPassword()//9
         {
-            var userlist = _loginManager.ReadFile();
-            var user = userlist.Find(x => x._username == "user2");
-            Assert.Equal("user2", user._username);
+            _loginManager.RegisterUser("user", "password1!", _mockTime);
+            var login = _loginManager.Login("user", "password1!", _mockTime);
+            Assert.True(login);
+            _mockTime.SetDateTo(DateTime.Today + TimeSpan.FromDays(400));
+            login = _loginManager.Login("user", "password1!", _mockTime);
+            Assert.False(login);
         }
     }
 }
